@@ -6,6 +6,7 @@ import Menu from '../components/MenuComponent';
 import Dishdetail from '../components/DishdetailComponent';
 import Home from '../components/HomeComponent';
 import Contact from '../components/ContactComponent'
+import About from '../components/AboutComponent'
 
 const MenuNavigator = createStackNavigator({
     Menu: { screen: Menu },
