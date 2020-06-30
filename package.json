@@ -30,7 +30,8 @@
   },
   "devDependencies": {
     "@babel/core": "^7.8.6",
-    "babel-preset-expo": "^8.2.3"
+    "babel-preset-expo": "^8.2.3",
+    "react-devtools": "^4.7.0"
   },
   "private": true
 }
