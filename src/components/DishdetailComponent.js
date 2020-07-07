@@ -23,6 +23,8 @@ const mapDispatchToProps = dispatch => ({
 const RenderDish = props => {
     const { dish, toggleModal } = props;
 
+    handleViewRef = ref => this.view = ref;
+
     const recognizeDrag = ({ moveX, moveY, dx, dy }) => {
         if (dx < -200)
             return true;
@@ -33,6 +35,10 @@ const RenderDish = props => {
     const pandReasponder = PanResponder.create({
         onStartShouldSetPanResponder: (e, gestureState) => {
             return true;
+        },
+        onPanResponderGrant: () => {
+            this.view.rubberBand(1000)
+                .then(endState => console.log(endState.finished ? 'finished' : 'cancelled'))
         },
         onPanResponderEnd: (e, gestureState) => {
             if (recognizeDrag(gestureState))
@@ -59,6 +65,7 @@ const RenderDish = props => {
     if (dish != null) {
         return (
             <Animatable.View animation="fadeInDown" duration={2000} delay={1000}
+                ref={this.handleViewRef}
                 {...pandReasponder.panHandlers}>
                 <Card
                     featuredTitle={dish.name}
