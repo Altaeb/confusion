@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Text, View, ScrollView, StyleSheet, Picker, Switch, Button, Modal } from 'react-native';
+import { Text, View, ScrollView, StyleSheet, Picker, Switch, Button, Modal, Alert } from 'react-native';
 import * as Animatable from 'react-native-animatable';
 import DatePicker from 'react-native-datepicker'
 
@@ -26,14 +26,24 @@ class Reservation extends Component {
 
     handleReservation() {
         console.log(JSON.stringify(this.state));
-        this.toggleModlal();
+        //this.toggleModlal();
+        Alert.alert(
+            'Your Reservation OK?',
+            'Number of Guests: ' + this.state.guests + '\nSmoking? ' + this.state.smoking + '\nDate and Time: ' + this.state.date,
+            [
+                { text: 'Cancel', onPress: () => this.resetForm(), style: 'cancel' },
+                { text: 'OK', onPress: () => () => this.resetForm() }
+            ],
+            { cancelable: false }
+        );
     }
 
     resetForm() {
         this.setState({
             guests: 1,
             smoking: false,
-            date: ''
+            date: '',
+            showModal: false
         });
     }
 
