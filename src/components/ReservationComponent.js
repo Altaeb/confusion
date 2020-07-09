@@ -1,14 +1,15 @@
 import React, { Component } from 'react';
 import { Text, View, ScrollView, StyleSheet, Picker, Switch, Button, Modal, Alert } from 'react-native';
-import * as Animatable from 'react-native-animatable';
+import { Card } from 'react-native-elements';
 import DatePicker from 'react-native-datepicker';
-import { Permissions, Notifications } from 'expo';
+import * as Animatable from 'react-native-animatable';
+import * as Notifications from 'expo';
+import * as Permissions from 'expo-permissions';
+import * as Calendar from 'expo-calendar';
 
 class Reservation extends Component {
-
     constructor(props) {
         super(props);
-
         this.state = {
             guests: 1,
             smoking: false,
@@ -18,22 +19,47 @@ class Reservation extends Component {
     }
 
     static navigationOptions = {
-        title: 'Reserve Table',
+        title: 'Reserve Table'
     };
 
-    toggleModlal() {
+    toggleModal() {
         this.setState({ showModal: !this.state.showModal })
     }
 
+    async obtainCalendarPermission() {
+        let permission = await Permissions.getAsync(Permissions.CALENDAR);
+        if (permission.status !== 'granted') {
+            permission = await Permissions.askAsync(Permissions.CALENDAR);
+            if (permission.status !== 'granted') {
+                Alert.alert('Permission not granted to calendar');
+            }
+        }
+        return permission;
+    }
+
+    async addReservationToCalendar(date) {
+        await this.obtainCalendarPermission();
+
+        let dateMs = Date.parse(date);
+        let startDate = new Date(dateMs);
+        let endDate = new Date(dateMs + 2 * 60 * 60 * 1000);
+
+        await Calendar.createEventAsync(Calendar.DEFAULT, {
+            title: 'Con Fusion Table Reservation',
+            startDate: startDate,
+            endDate: endDate,
+            timeZone: 'Asia/Hong_Kong',
+            location: '121, Clear Water Bay Road, Clear Water Bay, Kowloon, Hong Kong'
+        });
+    }
     handleReservation() {
         console.log(JSON.stringify(this.state));
-        //this.toggleModlal();
         Alert.alert(
             'Your Reservation OK?',
             'Number of Guests: ' + this.state.guests + '\nSmoking? ' + this.state.smoking + '\nDate and Time: ' + this.state.date,
             [
                 { text: 'Cancel', onPress: () => this.resetForm(), style: 'cancel' },
-                { text: 'OK', onPress: () => () => this.presentLocalNotification(this.status.date) }
+                { text: 'OK', onPress: () => { this.presentLocalNotification(this.state.date); this.addReservationToCalendar(this.state.date); this.resetForm(); } },
             ],
             { cancelable: false }
         );
@@ -45,7 +71,7 @@ class Reservation extends Component {
             smoking: false,
             date: '',
             showModal: false
-        });
+        })
     }
 
     async obtainNotificationPermission() {
@@ -63,7 +89,7 @@ class Reservation extends Component {
         await this.obtainNotificationPermission();
         Notifications.presentLocalNotificationAsync({
             title: 'Your Reservation',
-            body: 'Resevation for ' + date + ' requested',
+            body: 'Reservation for ' + date + ' requested',
             ios: {
                 sound: true
             },
@@ -78,12 +104,10 @@ class Reservation extends Component {
     render() {
         return (
             <ScrollView>
-                <Animatable.View animation="zoomIn" duration={2000} delay={1000}>
+                <Animatable.View animation="zoomInDown" duration={2000} delay={1000}>
                     <View style={styles.formRow}>
                         <Text style={styles.formLabel}>Number of Guests</Text>
-                        <Picker
-                            style={styles.formItem}
-                            selectedValue={this.state.guests}
+                        <Picker style={styles.formItem} selectedValue={this.state.guests}
                             onValueChange={(itemValue, itemIndex) => this.setState({ guests: itemValue })}>
                             <Picker.Item label="1" value="1" />
                             <Picker.Item label="2" value="2" />
@@ -98,7 +122,7 @@ class Reservation extends Component {
                         <Switch
                             style={styles.formItem}
                             value={this.state.smoking}
-                            onTintColor='#512DA8'
+                            onTintColor="#512DA8"
                             onValueChange={(value) => this.setState({ smoking: value })}>
                         </Switch>
                     </View>
@@ -109,7 +133,7 @@ class Reservation extends Component {
                             date={this.state.date}
                             format=''
                             mode="datetime"
-                            placeholder="select date and Time"
+                            placeholder="select date and time"
                             minDate="2017-01-01"
                             confirmBtnText="Confirm"
                             cancelBtnText="Cancel"
@@ -123,7 +147,6 @@ class Reservation extends Component {
                                 dateInput: {
                                     marginLeft: 36
                                 }
-                                // ... You can check the source to find the other keys. 
                             }}
                             onDateChange={(date) => { this.setState({ date: date }) }}
                         />
@@ -136,29 +159,26 @@ class Reservation extends Component {
                             accessibilityLabel="Learn more about this purple button"
                         />
                     </View>
-                    <Modal
-                        animationType={'slide'}
-                        transparent={false}
+                    <Modal animation={"slide"} transparent={false}
                         visible={this.state.showModal}
-                        onDismiss={() => { this.toggleModlal(); this.resetForm() }}
-                        onRequestClose={() => { this.toggleModlal(); this.resetForm() }}>
-                        <View style={styles.modal} >
-                            <Text style={styles.modalTitle}>Your Reservation</Text>
-                            <Text style={styles.modalText}>Number og Gustts:{this.state.guests}</Text>
-                            <Text style={styles.modalText}>Smoking? {this.state.smoking ? 'yes' : 'No'}</Text>
-                            <Text style={styles.modalText}>Date and Time {this.state.date}</Text>
-                            <Button
-                                onPress={() => { this.toggleModlal(); this.resetForm() }}
-                                color='#512DA8'
-                                title='Close' />
+                        onDismiss={() => this.toggleModal()}
+                        onRequestClose={() => this.toggleModal}>
+                        <View style={styles.modal}>
+                            <Text style={styles.modalTitle}> Your Reservation</Text>
+                            <Text style={styles.modalText}>Number of Guests: {this.state.guests}</Text>
+                            <Text style={styles.modalText}>Smoking?: {this.state.smoking ? 'Yes' : 'No'}</Text>
+                            <Text style={styles.modalText}>Date and Time: {this.state.date}</Text>
+                            <Button onPress={() => { this.toggleModal(); this.resetForm(); }}
+                                color="#512DA8"
+                                title="close"
+                            />
                         </View>
                     </Modal>
                 </Animatable.View>
-            </ScrollView >
+            </ScrollView>
         );
     }
-
-};
+}
 
 const styles = StyleSheet.create({
     formRow: {
@@ -166,7 +186,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         flex: 1,
         flexDirection: 'row',
-        margin: 20
+        margin: 28
     },
     formLabel: {
         fontSize: 18,
