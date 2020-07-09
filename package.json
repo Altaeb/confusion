@@ -11,6 +11,7 @@
     "@react-native-community/masked-view": "^0.1.10",
     "expo": "^38.0.0",
     "expo-cli": "^3.21.12",
+    "expo-mail-composer": "~8.2.1",
     "expo-secure-store": "~9.0.1",
     "expo-status-bar": "^1.0.0",
     "react": "16.11.0",
